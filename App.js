@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Button from "react-bootstrap/Button";
 import Card from "react-bootstrap/Card";
 import Container from "react-bootstrap/Container";
@@ -9,7 +9,7 @@ import { Row } from "react-bootstrap";
 const App = () => {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(4);
+  const productsPerPage = 4;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -24,35 +24,33 @@ const App = () => {
     fetchProducts();
   }, []);
 
-  // Calculate the total number of pages
-  const totalPages = Math.ceil(products.length / productsPerPage);
-  // Get the current products for the page
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(
-    indexOfFirstProduct,
-    indexOfLastProduct
+  // Calculate total pages
+  const totalPages = useMemo(
+    () => Math.ceil(products.length / productsPerPage),
+    [products.length]
   );
 
-  // Handle next and prev page navigation
-  const handlePrevPage = () => {
-    if (currentPage > 1) setCurrentPage(currentPage - 1);
-  };
+  // Get current products for the page using memoization
+  const currentProducts = useMemo(() => {
+    const indexOfLastProduct = currentPage * productsPerPage;
+    const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+    return products.slice(indexOfFirstProduct, indexOfLastProduct);
+  }, [currentPage, products]);
 
-  const handleNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
+  // Pagination navigation handlers
+  const handlePrevPage = () =>
+    currentPage > 1 && setCurrentPage(currentPage - 1);
+  const handleNextPage = () =>
+    currentPage < totalPages && setCurrentPage(currentPage + 1);
+
+  // Create page numbers only when products or pagination changes
+  const pageNumbers = useMemo(() => {
+    const numbers = [];
+    for (let i = 1; i <= totalPages; i++) {
+      numbers.push(i);
     }
-  };
-
-  // Create the pagination items
-  const pageNumbers = []; //[1,2,3,4,5]
-  for (let i = 1; i <= totalPages; i++) {
-    pageNumbers.push(i);
-  }
-
-  // Handle page change
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+    return numbers;
+  }, [totalPages]);
 
   return (
     <Container>
@@ -88,7 +86,7 @@ const App = () => {
           <Pagination.Item
             key={number}
             active={number === currentPage}
-            onClick={() => paginate(number)}
+            onClick={() => setCurrentPage(number)}
           >
             {number}
           </Pagination.Item>
