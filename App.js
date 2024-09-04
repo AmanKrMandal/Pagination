@@ -9,7 +9,6 @@ import { Row } from "react-bootstrap";
 const App = () => {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  console.log("currentPage", currentPage);
   const [productsPerPage] = useState(4);
 
   useEffect(() => {
